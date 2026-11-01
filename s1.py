@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 from streamlit_option_menu import option_menu
 
 st.set_page_config(
@@ -463,16 +464,6 @@ elif opt == "Dataset":
 
 
 
-# elif opt == "Preprocessing":
-#     st.title("🧹 Data Preprocessing Pipeline")
-#     st.markdown("""This page shows how we clean the raw USED CAR data before visualisation.
-#     We:
-#     - Drop columns that are not needed for our analysis.
-#     - Remove rows that contain missing values.
-#     - Reset the index for a clean, sequential Data Frame.
-#     """)
-
-
 elif opt == "Preprocessing":
 
     st.title("🧹 Data Preprocessing Pipeline")
@@ -640,26 +631,339 @@ elif opt == "Preprocessing":
 
 
 
+# elif opt == "Visualizations":
+#     st.title("📊 Used Car Visualization")
+#     st.markdown("""
+#     Explore patterns and relationships in the used car dataset
+#     through interactive charts and visual analytics.
+#     """)
+
+
+    
+#     # ----- Load clean data (reuse from Processing if available) -----
+#     if 'cleaned_data' in st.session_state:
+#         plot_data = st.session_state['cleaned_data'].copy()
+#     else:
+#         # Fallback: clean filtered data on the fly
+#         plot_data = filtered.copy()
+#         cols_to_drop = ["InteriorColour"]
+#         cols_exist = [c for c in cols_to_drop if c in plot_data.columns]
+#         plot_data.drop(columns=cols_exist, inplace=True, errors='ignore')
+#         plot_data.dropna(inplace=True)
+#         plot_data.reset_index(drop=True, inplace=True)
+
+#     if plot_data.empty:
+#         st.warning("No data available after cleaning. Please check your filters or the Processing page.")
+#     else:
+#         # ----- Tabs for each library -----
+#         tab1, tab2, tab3, tab4, tab5 = st.tabs(["💰 Price Analysis","🚗 Vehicle Analysis","⛽ Fuel & Transmission","🔧 Engine Analysis","🔥 Correlation"])
+
+#         with tab1:
+#             st.subheader("💰 Price Analysis")
+#             st.markdown("**Explore vehicle pricing patterns, brand-wise prices, "
+#             "vehicle age impact, and fuel-type pricing.**")
+
+#             st.bar_chart(plot_data, x="Kilometres", y="Price", 
+#                 x_label="Kilometers", y_label="Price")
+#             st.caption("**Bar Chart** –  Vehicle price according to kilometres driven.")
+            
+
+
+
+
+
+
 elif opt == "Visualizations":
-    st.title("📊 Used Car Visualization")
-    st.markdown("""
-    Explore patterns and relationships in the used car dataset
-    through interactive charts and visual analytics.
-    """)
+    st.title("📊 Used Car Analytics")
+    st.markdown(
+        "### Interactive high-fi visualization dashboard"
+    )
+
+    # ---------- Load clean data ----------
+    if "cleaned_data" in st.session_state:
+        plot_data = st.session_state["cleaned_data"].copy()
+    else:
+        plot_data = filtered.copy()
+        plot_data = plot_data.dropna().reset_index(drop=True)
+
+    if plot_data.empty:
+        st.warning("No data available for visualization. Please check your filters.")
+    else:
+        # ---------- High-fi styling ----------
+        st.markdown("""
+        <style>
+        .viz-header {
+            padding: 18px 22px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #eef6ff, #f8fbff);
+            border: 1px solid #dbeafe;
+            margin-bottom: 18px;
+        }
+        .viz-header h3 {
+            margin: 0 0 5px 0;
+            color: #172554;
+        }
+        .viz-header p {
+            margin: 0;
+            color: #64748b;
+        }
+        .insight-card {
+            padding: 15px 18px;
+            border-radius: 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            margin-top: 8px;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+        st.markdown("""
+        <div class="viz-header">
+            <h3>🚘 Market Intelligence</h3>
+            <p>Explore pricing, vehicle characteristics and relationships using interactive charts.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ---------- KPI row ----------
+        k1, k2, k3, k4 = st.columns(4)
+
+        with k1:
+            st.metric("🚗 Vehicles", f"{len(plot_data):,}")
+        with k2:
+            st.metric("💰 Average Price", f"${plot_data['Price'].mean():,.0f}")
+        with k3:
+            st.metric("🛣️ Avg Kilometres", f"{plot_data['Kilometres'].mean():,.0f}")
+        with k4:
+            st.metric("📅 Avg Vehicle Age", f"{plot_data['VehicleAge'].mean():.1f} yrs")
+
+        st.markdown("---")
+
+        # ---------- Chart controls ----------
+        st.subheader("🎛️ Explore Visualizations")
+
+        chart_choice = st.selectbox(
+            "Choose an analysis",
+            [
+                "💰 Price Distribution",
+                "🏷️ Average Price by Brand",
+                "🛣️ Price vs Kilometres",
+                "📅 Price vs Vehicle Age",
+                "⛽ Average Price by Fuel Type",
+                "⚙️ Average Price by Transmission",
+                "🚙 Average Price by Body Type",
+                "🔧 Engine Size vs Price",
+                "🔥 Correlation Heatmap"
+            ]
+        )
 
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "💰 Price Analysis",
-        "🚗 Vehicle Analysis",
-        "⛽ Fuel & Transmission",
-        "🔧 Engine Analysis",
-        "🔥 Correlation"
-    ])
-
- 
 
 
 
+        #  # ---------- Price Distribution ----------
+        if chart_choice == "💰 Price Distribution":
+            fig = px.histogram(
+                plot_data,
+                x="Price",
+                nbins=30,
+                title="Vehicle Price Distribution",
+                labels={"Price": "Price"},
+                template="plotly_white"
+            )
+            fig.update_layout(height=480, title_x=0.02)
+            st.plotly_chart(fig, use_container_width=True)
+
+
+            st.markdown(
+                '<div class="insight-card">💡 <b>Insight:</b> This chart shows how used-car prices are distributed and helps identify common price ranges and unusually expensive vehicles.</div>',
+                unsafe_allow_html=True
+            )
+
+
+
+
+
+             # ---------- Brand ----------
+        elif chart_choice == "🏷️ Average Price by Brand":
+            brand_price = (
+                plot_data.groupby("Brand", as_index=False)["Price"]
+                .mean()
+                .sort_values("Price", ascending=False)
+                .head(15)
+            )
+            fig = px.bar(
+                brand_price,
+                x="Price",
+                y="Brand",
+                orientation="h",
+                text_auto=".0f",
+                title="Top 15 Brands by Average Price",
+                labels={"Price": "Average Price", "Brand": "Brand"},
+                template="plotly_white"
+            )
+            fig.update_layout(height=560, title_x=0.02, yaxis={"categoryorder": "total ascending"})
+            st.plotly_chart(fig, use_container_width=True)
+
+            st.markdown(
+                '<div class="insight-card">💡 <b>Insight:</b> Brand-level comparison highlights which manufacturers command higher average used-car prices.</div>',
+                unsafe_allow_html=True
+            )
+
+        # ---------- Mileage ----------
+        elif chart_choice == "🛣️ Price vs Kilometres":
+            fig = px.scatter(
+                plot_data,
+                x="Kilometres",
+                y="Price",
+                hover_data=["Brand", "Model", "VehicleAge"],
+                title="Price vs Kilometres",
+                labels={"Kilometres": "Kilometres Driven", "Price": "Price"},
+                template="plotly_white"
+            )
+            fig.update_layout(height=520, title_x=0.02)
+            st.plotly_chart(fig, use_container_width=True)
+
+            st.markdown(
+                '<div class="insight-card">💡 <b>Insight:</b> The scatter plot helps examine whether higher mileage is associated with lower vehicle prices.</div>',
+                unsafe_allow_html=True
+            )
+
+        # ---------- Age ----------
+        elif chart_choice == "📅 Price vs Vehicle Age":
+            age_price = (
+                plot_data.groupby("VehicleAge", as_index=False)["Price"]
+                .mean()
+                .sort_values("VehicleAge")
+            )
+            fig = px.line(
+                age_price,
+                x="VehicleAge",
+                y="Price",
+                markers=True,
+                title="Average Price by Vehicle Age",
+                labels={"VehicleAge": "Vehicle Age (Years)", "Price": "Average Price"},
+                template="plotly_white"
+            )
+            fig.update_layout(height=500, title_x=0.02)
+            st.plotly_chart(fig, use_container_width=True)
+
+            st.markdown(
+                '<div class="insight-card">💡 <b>Insight:</b> This trend shows how average vehicle value changes as cars become older.</div>',
+                unsafe_allow_html=True
+            )
+
+        # ---------- Fuel ----------
+        elif chart_choice == "⛽ Average Price by Fuel Type":
+            fuel_price = (
+                plot_data.groupby("FuelType", as_index=False)["Price"]
+                .mean()
+                .sort_values("Price", ascending=False)
+            )
+            fig = px.bar(
+                fuel_price,
+                x="FuelType",
+                y="Price",
+                text_auto=".0f",
+                title="Average Price by Fuel Type",
+                labels={"FuelType": "Fuel Type", "Price": "Average Price"},
+                template="plotly_white"
+            )
+            fig.update_layout(height=480, title_x=0.02)
+            st.plotly_chart(fig, use_container_width=True)
+
+            st.markdown(
+                '<div class="insight-card">💡 <b>Insight:</b> Fuel-type comparison reveals differences in average pricing across vehicle technologies.</div>',
+                unsafe_allow_html=True
+            )
+
+        # ---------- Transmission ----------
+        elif chart_choice == "⚙️ Average Price by Transmission":
+            trans_price = (
+                plot_data.groupby("Transmission", as_index=False)["Price"]
+                .mean()
+                .sort_values("Price", ascending=False)
+            )
+            fig = px.bar(
+                trans_price,
+                x="Transmission",
+                y="Price",
+                text_auto=".0f",
+                title="Average Price by Transmission",
+                labels={"Transmission": "Transmission", "Price": "Average Price"},
+                template="plotly_white"
+            )
+            fig.update_layout(height=480, title_x=0.02)
+            st.plotly_chart(fig, use_container_width=True)
+
+            st.markdown(
+                '<div class="insight-card">💡 <b>Insight:</b> This comparison shows how average used-car prices differ between transmission types.</div>',
+                unsafe_allow_html=True
+            )
+
+        # ---------- Body Type ----------
+        elif chart_choice == "🚙 Average Price by Body Type":
+            body_price = (
+                plot_data.groupby("BodyType", as_index=False)["Price"]
+                .mean()
+                .sort_values("Price", ascending=False)
+            )
+            fig = px.bar(
+                body_price,
+                x="BodyType",
+                y="Price",
+                text_auto=".0f",
+                title="Average Price by Body Type",
+                labels={"BodyType": "Body Type", "Price": "Average Price"},
+                template="plotly_white"
+            )
+            fig.update_layout(height=480, title_x=0.02)
+            st.plotly_chart(fig, use_container_width=True)
+
+            st.markdown(
+                '<div class="insight-card">💡 <b>Insight:</b> Body-type analysis helps compare pricing patterns across different vehicle categories.</div>',
+                unsafe_allow_html=True
+            )
+
+        # ---------- Engine ----------
+        elif chart_choice == "🔧 Engine Size vs Price":
+            fig = px.scatter(
+                plot_data,
+                x="EngineSizeL",
+                y="Price",
+                hover_data=["Brand", "Model", "FuelType"],
+                title="Engine Size vs Price",
+                labels={"EngineSizeL": "Engine Size (L)", "Price": "Price"},
+                template="plotly_white"
+            )
+            fig.update_layout(height=520, title_x=0.02)
+            st.plotly_chart(fig, use_container_width=True)
+
+            st.markdown(
+                '<div class="insight-card">💡 <b>Insight:</b> This relationship helps evaluate whether engine size is associated with vehicle price.</div>',
+                unsafe_allow_html=True
+            )
+
+        # ---------- Correlation ----------
+        elif chart_choice == "🔥 Correlation Heatmap":
+            numeric_data = plot_data.select_dtypes(include="number")
+            corr = numeric_data.corr()
+
+            fig = px.imshow(
+                corr,
+                text_auto=".2f",
+                aspect="auto",
+                title="Numeric Feature Correlation Matrix",
+                color_continuous_scale="RdBu_r",
+                zmin=-1,
+                zmax=1
+            )
+            fig.update_layout(height=620, title_x=0.02)
+            st.plotly_chart(fig, use_container_width=True)
+
+            st.markdown(
+                '<div class="insight-card">💡 <b>Insight:</b> Correlation values close to +1 or -1 indicate stronger positive or negative linear relationships between numeric features.</div>',
+                unsafe_allow_html=True
+            )
 
 
 
