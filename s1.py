@@ -9,7 +9,7 @@ st.set_page_config(
     page_icon = "🚗"
 )
 
-df = pd.read_csv('project/clean_vehicle_data.csv')
+df = pd.read_csv('clean_vehicle_data.csv')
 # st.dataframe(df)
 
 with st.sidebar:
